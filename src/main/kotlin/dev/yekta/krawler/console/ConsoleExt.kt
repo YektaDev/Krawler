@@ -136,11 +136,11 @@ object Ask {
         return readDouble()
     }
 
-    fun options(message: String = "Select an dev.yekta.krawler.console.option:", vararg options: Option): Option {
+    fun options(message: String = "Select an option:", vararg options: Option): Option {
         val optionCode = string(message)
         return options.firstOrNull { it.code == optionCode } ?: run {
             val validOptions = options.joinToString(separator = ", ") { it.code.yellowBold().reset() }
-            error("Invalid dev.yekta.krawler.console.option. Valid options are: $validOptions")
+            error("Invalid option. Valid options are: $validOptions")
             options(message, *options)
         }
     }
