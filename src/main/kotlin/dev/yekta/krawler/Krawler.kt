@@ -12,6 +12,7 @@ class Krawler {
 
     private val tui = KrawlerTui(
         onStartCrawlingPress = {
+            settings.load()
             crawler.start()
             KrawlerStartResult.Success
         },
