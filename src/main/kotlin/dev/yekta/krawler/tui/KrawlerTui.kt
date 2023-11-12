@@ -1,48 +1,36 @@
 package dev.yekta.krawler.tui
 
-import dev.yekta.krawler.console.Ask
 import dev.yekta.krawler.console.Ask.Option
 import dev.yekta.krawler.console.info
-import dev.yekta.krawler.console.option
 import dev.yekta.krawler.model.Page.MAIN_MENU
 import dev.yekta.krawler.model.Page.SETTINGS
+import dev.yekta.krawler.tui.model.Menu
 
 class KrawlerTui(
     private val onStartCrawlingPress: () -> KrawlerStartResult,
     private val onExitPress: () -> Unit,
 ) {
-    private val manager = TuiStateManager { page ->
+    private val nav = TuiStackNavigatorImp { page ->
         when (page) {
-            MAIN_MENU -> TODO()
-            SETTINGS -> TODO()
+            MAIN_MENU -> mainMenu()
+            SETTINGS -> settingsMenu()
         }
     }
 
-    fun start() = manager.bindScreen()
+    fun start() = nav.bindTui()
 
-    private fun handleMenu(title: String, back: (() -> Unit)? = null, vararg options: Option) {
-        val options = when {
-            back != null -> options.toList().let { it + Option(it.size.toString(), "Back", back) }
-            else -> options.toList()
-        }
-        Ask.optionsInSection(
-            sectionTitle = title,
-            options = options.toTypedArray(),
-        ).action()
-    }
-
-    private fun mainMenu() {
-        Ask.optionsInSection(
-            sectionTitle = "Krawler",
+    private fun mainMenu(): Menu = Menu(
+        title = "Krawler",
+        options = Option.listOf(
             "Start Crawling" to {},
-            "Settings" to { manager.navigate(SETTINGS) },
+            "Settings" to { nav.push(SETTINGS) },
             "Exit" to {},
-        ).action()
-    }
+        )
+    )
 
-    private fun settingsMenu(): Option {
-        return Ask.optionsInSection(
-            sectionTitle = "Settings",
+    private fun settingsMenu(): Menu = Menu(
+        title = "Settings",
+        options = Option.listOf(
             "URL" to {},
             "Depth" to {},
             "Max Pages" to {},
@@ -53,9 +41,8 @@ class KrawlerTui(
             "Output Directory" to {},
             "Output Format" to {},
             "Verbose" to {},
-            "Back" to {},
-        )
-    }
+        ),
+    )
 
     private fun handleOnStart() = when (val result = onStartCrawlingPress()) {
         is KrawlerStartResult.Success -> info("Crawler started...")
