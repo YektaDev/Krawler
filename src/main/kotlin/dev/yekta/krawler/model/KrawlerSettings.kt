@@ -4,7 +4,8 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class KrawlerSettings(
-    val url: String = "",
+    val seeds: List<String>,
+    val filter: CrawlingFilter,
     val depth: Int = 4,
     val maxPages: Int? = null,
     val maxDuration: Int? = null,
