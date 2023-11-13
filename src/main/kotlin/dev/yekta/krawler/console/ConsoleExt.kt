@@ -173,12 +173,17 @@ private object Print {
 
 fun title(text: String) = println(lineLeft + ' ' + text.yellowUnderlined().yellowBoldBright().reset() + ' ' + lineRight)
 fun subTitle(text: String) = println("-=-=-=-=-".white() + "> ".yellowBoldBright().reset() + text)
-fun info(vararg texts: String) {
+
+fun verbose(vararg texts: Any) = println(
+    "VRB> ".whiteBoldBright().reset() + texts.joinToString(prefix = "", postfix = "", transform = Any::toString)
+)
+
+fun info(vararg texts: Any) {
     var i = 0
     val coloredInfo = texts.joinToString(prefix = "", postfix = "") {
         when (i++ % 2 == 0) {
-            true -> it.greenBoldBright().reset()
-            false -> it.greenBold().reset()
+            true -> it.toString().greenBoldBright().reset()
+            false -> it.toString().greenBold().reset()
         }
     }
     println(coloredInfo)
