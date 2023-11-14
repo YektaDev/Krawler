@@ -1,28 +1,16 @@
 package dev.yekta.krawler.domain.parser
 
+import dev.yekta.krawler.domain.parser.ValidUrlData.validChars
+import dev.yekta.krawler.domain.parser.ValidUrlData.validPrefixes
 import dev.yekta.krawler.model.CrawlingFilter
 import dev.yekta.krawler.model.CrawlingFilter.Blacklist
 import dev.yekta.krawler.model.CrawlingFilter.Whitelist
 
-class UrlExtractorImp(override val filter: CrawlingFilter): UrlExtractor {
-    private companion object {
-        @Suppress("HttpUrlsUsage")
-        val validPrefixes = arrayOf(
-            "http://",
-            "https://",
-            "ftp://",
-            "www.",
-        )
+class UrlExtractorImp : UrlExtractor {
+    private val absolutifier: UrlAbsolutifier = UrlAbsolutifierImp()
 
-        val validChars = (
-                "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
-                        "abcdefghijklmnopqrstuvwxyz" +
-                        "0123456789" +
-                        "-._~:/?#[]@!\$&'()*+,;=%"
-                ).toCharArray().sortedArray()
-    }
-
-    private fun validUrlsOf(html: String): List<String> {
+    private fun relUrlsAsAbs(url: String, html: String) = absolutifier.extractRelUrlsAsAbsolute(url = url, html = html)
+    private fun absUrls(html: String): List<String> {
         val urls = mutableListOf<String>()
         var firstUncheckedPrefixIndex = 0
         var firstUncheckedPossibleEnd: Int
@@ -48,17 +36,14 @@ class UrlExtractorImp(override val filter: CrawlingFilter): UrlExtractor {
         return urls
     }
 
-    override fun extract(html: String): List<String> {
-        val possibleUrls = validUrlsOf(html)
+    override fun extract(url: String, html: String, filter: CrawlingFilter): List<String> {
+        val extractedUrls = (absUrls(html) + relUrlsAsAbs(url = url, html = html)).distinct()
         val filterPatterns: ((Regex) -> Boolean) -> Boolean = { predicate ->
             when (filter) {
                 is Blacklist -> filter.disallowPatterns.none(predicate)
                 is Whitelist -> filter.allowPatterns.any(predicate)
             }
         }
-        val filteredUrls = possibleUrls.filter { url ->
-            filterPatterns { pattern -> pattern.matches(url) }
-        }
-        return filteredUrls
+        return extractedUrls.filter { absUrl -> filterPatterns { pattern -> pattern.matches(absUrl) } }
     }
 }
