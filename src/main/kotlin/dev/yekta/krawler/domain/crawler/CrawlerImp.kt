@@ -30,7 +30,7 @@ class CrawlerImp(
     private val pool: UrlPool = UrlPoolImp()
     private val scheduler: Scheduler = FifoScheduler(sessionId, repo.crawlingState)
     private val fetcher: ConcurrentFetcher = ConcurrentFetcherImp(settings.concurrentConnections)
-    private val extractor: UrlExtractor = UrlExtractorImp(settings.filter)
+    private val extractor: UrlExtractor = UrlExtractorImp()
 
     override fun crawl(seeds: List<String>) = scope.launch {
         settings.seeds.forEach { seed ->
@@ -57,7 +57,11 @@ class CrawlerImp(
                 repo.webpage.add(sessionId, url, result.html)
                 scheduleNewUrls(
                     depth = minDepth + 1,
-                    urls = extractor.extract(result.html),
+                    urls = extractor.extract(
+                        url = url,
+                        html = result.html,
+                        filter = settings.filter,
+                    ),
                 )
             }
 
