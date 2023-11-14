@@ -3,20 +3,29 @@ package dev.yekta.krawler.domain.fetcher
 import dev.yekta.krawler.log.Log
 import io.ktor.client.*
 import io.ktor.client.engine.okhttp.*
+import io.ktor.client.plugins.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
+import java.util.concurrent.TimeUnit.MILLISECONDS
 
 class ConcurrentFetcherImp(
-    override val maxConnections: Int,
+    override val maxConnections: Int = 4,
+    private val shouldFollowRedirects: Boolean = true,
+    private val userAgent: String = "Krawler",
+    private val connectTimeoutMs: Long = 10_000,
+    private val readTimeoutMs: Long = 10_000,
 ) : ConcurrentFetcher {
     private var activeConnections = MutableStateFlow(0)
     private val client = HttpClient(OkHttp) {
+        install(UserAgent) { agent = userAgent }
         engine {
             config {
-                followRedirects(true)
+                followRedirects(shouldFollowRedirects)
+                connectTimeout(connectTimeoutMs, MILLISECONDS)
+                readTimeout(readTimeoutMs, MILLISECONDS)
             }
         }
     }
