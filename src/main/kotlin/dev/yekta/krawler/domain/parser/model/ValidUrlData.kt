@@ -1,4 +1,4 @@
-package dev.yekta.krawler.domain.parser
+package dev.yekta.krawler.domain.parser.model
 
 object ValidUrlData {
     @Suppress("HttpUrlsUsage")

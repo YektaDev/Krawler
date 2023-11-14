@@ -1,7 +1,7 @@
 package dev.yekta.krawler.domain.parser
 
-import dev.yekta.krawler.domain.parser.ValidUrlData.validChars
-import dev.yekta.krawler.domain.parser.ValidUrlData.validPrefixes
+import dev.yekta.krawler.domain.parser.model.ValidUrlData.validChars
+import dev.yekta.krawler.domain.parser.model.ValidUrlData.validPrefixes
 import dev.yekta.krawler.model.CrawlingFilter
 import dev.yekta.krawler.model.CrawlingFilter.Blacklist
 import dev.yekta.krawler.model.CrawlingFilter.Whitelist

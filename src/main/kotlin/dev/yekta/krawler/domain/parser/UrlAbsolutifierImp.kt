@@ -1,6 +1,6 @@
 package dev.yekta.krawler.domain.parser
 
-import dev.yekta.krawler.domain.parser.ValidUrlData.validPrefixes
+import dev.yekta.krawler.domain.parser.model.ValidUrlData.validPrefixes
 import kotlin.math.min
 
 class UrlAbsolutifierImp : UrlAbsolutifier {
