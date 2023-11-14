@@ -2,6 +2,7 @@ package dev.yekta.krawler.domain.parser
 
 import dev.yekta.krawler.domain.parser.model.ValidUrlData.validChars
 import dev.yekta.krawler.domain.parser.model.ValidUrlData.validPrefixes
+import dev.yekta.krawler.log.Log
 import dev.yekta.krawler.model.CrawlingFilter
 import dev.yekta.krawler.model.CrawlingFilter.Blacklist
 import dev.yekta.krawler.model.CrawlingFilter.Whitelist
@@ -37,6 +38,7 @@ class UrlExtractorImp : UrlExtractor {
     }
 
     override fun extract(url: String, html: String, filter: CrawlingFilter): List<String> {
+        Log.v("Extracting links from: $url")
         val extractedUrls = (absUrls(html) + relUrlsAsAbs(url = url, html = html)).distinct()
         val filterPatterns: ((Regex) -> Boolean) -> Boolean = { predicate ->
             when (filter) {
@@ -44,6 +46,8 @@ class UrlExtractorImp : UrlExtractor {
                 is Whitelist -> filter.allowPatterns.any(predicate)
             }
         }
-        return extractedUrls.filter { absUrl -> filterPatterns { pattern -> pattern.matches(absUrl) } }
+        return extractedUrls.filter { absUrl ->
+            filterPatterns { pattern -> pattern.matches(absUrl) }
+        }.also { Log.v("[Distinct Links of $url]\n    Found: ${extractedUrls.size}  |  Matched: ${it.size}") }
     }
 }
