@@ -17,10 +17,17 @@ class ConcurrentFetcherImp(
     private val userAgent: String = "Krawler",
     private val connectTimeoutMs: Long = 10_000,
     private val readTimeoutMs: Long = 10_000,
+    private val retriesOnServerError: Int = 0,
 ) : ConcurrentFetcher {
     private var activeConnections = MutableStateFlow(0)
     private val client = HttpClient(OkHttp) {
         install(UserAgent) { agent = userAgent }
+        if (retriesOnServerError > 0) {
+            install(HttpRequestRetry) {
+                retryOnServerErrors(maxRetries = retriesOnServerError)
+                exponentialDelay()
+            }
+        }
         engine {
             config {
                 followRedirects(shouldFollowRedirects)
