@@ -1,5 +1,6 @@
 val ktorVersion: String by project
 val okioVersion: String by project
+val exposedVersion: String by project
 val ktomlVersion: String by project
 
 plugins {
@@ -18,9 +19,16 @@ repositories {
 dependencies {
     implementation("io.ktor:ktor-client-core:$ktorVersion")
     implementation("io.ktor:ktor-client-okhttp:$ktorVersion")
+
     implementation("com.squareup.okio:okio:$okioVersion")
+
+    implementation("org.jetbrains.exposed:exposed-core:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-dao:$exposedVersion")
+    implementation("org.jetbrains.exposed:exposed-jdbc:$exposedVersion")
+
     implementation("com.akuleshov7:ktoml-core:$ktomlVersion")
     implementation("com.akuleshov7:ktoml-file:$ktomlVersion")
+
     testImplementation(kotlin("test"))
 }
 
