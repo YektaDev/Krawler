@@ -18,16 +18,27 @@ class ConcurrentFetcherImp(
     private val connectTimeoutMs: Long = 10_000,
     private val readTimeoutMs: Long = 10_000,
     private val retriesOnServerError: Int = 0,
+    private val customHeaders: List<Pair<String, String>> = emptyList(),
 ) : ConcurrentFetcher {
     private var activeConnections = MutableStateFlow(0)
     private val client = HttpClient(OkHttp) {
-        install(UserAgent) { agent = userAgent }
+        if (customHeaders.isNotEmpty()) {
+            install(DefaultRequest) {
+                customHeaders.forEach { (k, v) ->
+                    header(k, v)
+                }
+            }
+        }
         if (retriesOnServerError > 0) {
             install(HttpRequestRetry) {
                 retryOnServerErrors(maxRetries = retriesOnServerError)
                 exponentialDelay()
             }
         }
+        defaultRequest {
+            header("X-Custom-Header", "Hello")
+        }
+        install(UserAgent) { agent = userAgent }
         engine {
             config {
                 followRedirects(shouldFollowRedirects)
