@@ -17,7 +17,7 @@ data class KrawlerSettings(
     val connectTimeoutMs: Long = 10_000,
     val readTimeoutMs: Long = 10_000,
     val retriesOnServerError: Int = 0,
-    val customHeaders: List<Pair<String, String>>? = listOf("saf" to "dsfsdf"),
+    val customHeaders: Map<String, String>? = null,
 ) {
     val maxPageSizeBytes = maxPageSizeKb?.times(1000)
 
