@@ -4,6 +4,8 @@ import dev.yekta.krawler.domain.scheduler.model.ScheduledUrl
 import dev.yekta.krawler.model.CrawlingSessionID
 import dev.yekta.krawler.model.StoredUrl
 import dev.yekta.krawler.repo.CrawlingStateStore
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 class FifoScheduler(
     private val session: CrawlingSessionID,
@@ -25,7 +27,8 @@ class FifoScheduler(
         state.add(session, storedUrl)
     }
 
-    override suspend fun next(): ScheduledUrl? {
+    private val nextMutex = Mutex()
+    override suspend fun next(): ScheduledUrl? = nextMutex.withLock {
         val next = state.maxPriority(session) ?: return null
         state.remove(session, next.url)
         return ScheduledUrl(
