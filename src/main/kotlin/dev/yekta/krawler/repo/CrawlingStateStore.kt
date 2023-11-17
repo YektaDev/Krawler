@@ -4,9 +4,9 @@ import dev.yekta.krawler.model.CrawlingSessionID
 import dev.yekta.krawler.model.StoredUrl
 
 interface CrawlingStateStore {
-    fun maxPriority(session: CrawlingSessionID): StoredUrl?
-    fun minPriority(session: CrawlingSessionID): StoredUrl?
+    suspend fun maxPriority(session: CrawlingSessionID): StoredUrl?
+    suspend fun minPriority(session: CrawlingSessionID): StoredUrl?
 
-    fun add(url: StoredUrl)
-    fun remove(session: CrawlingSessionID, url: String)
+    suspend fun add(session: CrawlingSessionID, url: StoredUrl)
+    suspend fun remove(session: CrawlingSessionID, url: String)
 }
