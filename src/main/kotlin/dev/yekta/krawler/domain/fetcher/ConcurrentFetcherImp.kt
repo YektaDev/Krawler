@@ -18,7 +18,7 @@ class ConcurrentFetcherImp(
     private val connectTimeoutMs: Long = 10_000,
     private val readTimeoutMs: Long = 10_000,
     private val retriesOnServerError: Int = 0,
-    private val customHeaders: List<Pair<String, String>> = emptyList(),
+    private val customHeaders: List<Pair<String, String>>? = null,
 ) : ConcurrentFetcher {
     private var activeConnections = MutableStateFlow(0)
     private val client = HttpClient(OkHttp) {
@@ -35,7 +35,7 @@ class ConcurrentFetcherImp(
     }
 
     private fun HttpClientConfig<OkHttpConfig>.installCustomHeaders() {
-        if (customHeaders.isEmpty()) return
+        if (customHeaders.isNullOrEmpty()) return
         install(DefaultRequest) {
             customHeaders.forEach { (k, v) ->
                 header(k, v)
@@ -65,7 +65,7 @@ class ConcurrentFetcherImp(
 
     private suspend fun read(url: String): FetchResult = try {
         Log.v("GET: $url")
-        val response = client.get(url = Url(url))
+        val response = client.get(urlString = url)
         when {
             response.status.isSuccess().not() -> readError(url, response.status.description)
             response.contentType() != ContentType.Text.Html -> FetchResult.NotHtml(response.contentType()?.contentType)
