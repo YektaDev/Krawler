@@ -51,9 +51,9 @@ class ConcurrentFetcherImp(
         }
     }
 
-    override suspend fun fetch(url: String, onRead: (FetchResult) -> Unit) = launchOrSuspendRead(url, onRead)
+    override suspend fun fetch(url: String, onRead: suspend (FetchResult) -> Unit) = launchOrSuspendRead(url, onRead)
 
-    private suspend inline fun launchOrSuspendRead(url: String, crossinline onRead: (FetchResult) -> Unit) {
+    private suspend inline fun launchOrSuspendRead(url: String, crossinline onRead: suspend (FetchResult) -> Unit) {
         if (activeConnections.value >= maxConnections) return onRead(read(url))
         activeConnections.value++
         client.launch {
