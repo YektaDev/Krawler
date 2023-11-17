@@ -18,7 +18,7 @@ class ConcurrentFetcherImp(
     private val connectTimeoutMs: Long = 10_000,
     private val readTimeoutMs: Long = 10_000,
     private val retriesOnServerError: Int = 0,
-    private val customHeaders: List<Pair<String, String>>? = null,
+    private val customHeaders: Map<String, String>? = null,
 ) : ConcurrentFetcher {
     private var activeConnections = MutableStateFlow(0)
     private val client = HttpClient(OkHttp) {
