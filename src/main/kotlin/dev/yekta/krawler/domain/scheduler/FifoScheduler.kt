@@ -13,19 +13,19 @@ class FifoScheduler(
         const val INITIAL_PRIORITY = Long.MAX_VALUE
     }
 
-    private val minPriority get() = state.minPriority(session)?.priority ?: INITIAL_PRIORITY
+    private suspend fun getMinPriority() = state.minPriority(session)?.priority ?: INITIAL_PRIORITY
 
-    override fun schedule(url: ScheduledUrl) {
+    override suspend fun schedule(url: ScheduledUrl) {
         val storedUrl = StoredUrl(
             url = url.url,
             depth = url.depth,
             session = session,
-            priority = minPriority - 1,
+            priority = getMinPriority() - 1,
         )
-        state.add(storedUrl)
+        state.add(session, storedUrl)
     }
 
-    override fun next(): ScheduledUrl? {
+    override suspend fun next(): ScheduledUrl? {
         val next = state.maxPriority(session) ?: return null
         return ScheduledUrl(
             url = next.url,
