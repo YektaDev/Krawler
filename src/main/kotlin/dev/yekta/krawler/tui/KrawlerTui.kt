@@ -89,6 +89,7 @@ class KrawlerTui(
                     "Remove: ${session.value}" to {
                         removeSession(session)
                         info("Session ${session.value} removed!")
+                        if (getSessions().isEmpty()) nav.pop()
                     }
                 )
             }
