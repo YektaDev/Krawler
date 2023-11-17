@@ -16,6 +16,7 @@ import dev.yekta.krawler.log.Log
 import dev.yekta.krawler.model.CrawlingSessionID
 import dev.yekta.krawler.model.KrawlerSettings
 import dev.yekta.krawler.repo.Repo
+import dev.yekta.krawler.repo.util.add
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -25,10 +26,10 @@ class CrawlerImp(
     private val sessionId: CrawlingSessionID,
     private val settings: KrawlerSettings,
     private val repo: Repo,
+    private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
 ) : Crawler {
-    private val scope = CoroutineScope(Dispatchers.Default)
     private val pool: UrlPool = UrlPoolImp()
-    private val scheduler: Scheduler = FifoScheduler(sessionId, repo.crawlingState)
+    private val scheduler: Scheduler = FifoScheduler(sessionId, repo.state)
     private val fetcher: ConcurrentFetcher = ConcurrentFetcherImp(settings.concurrentConnections)
     private val extractor: UrlExtractor = UrlExtractorImp()
 
@@ -50,7 +51,7 @@ class CrawlerImp(
         }
     }
 
-    private fun handleFetchResult(depth: Int, url: String, result: FetchResult) {
+    private suspend fun handleFetchResult(depth: Int, url: String, result: FetchResult) {
         val minDepth = updateAndGetMinDepth(url, depth)
         when (result) {
             is Html -> {
@@ -74,7 +75,7 @@ class CrawlerImp(
         }
     }
 
-    private fun scheduleNewUrls(depth: Int, urls: List<String>) {
+    private suspend fun scheduleNewUrls(depth: Int, urls: List<String>) {
         for (url in urls) {
             val minDepth = updateAndGetMinDepth(url, depth)
             if (pool[url] != null) continue
