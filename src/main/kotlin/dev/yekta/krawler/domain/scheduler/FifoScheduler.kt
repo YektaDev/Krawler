@@ -27,6 +27,7 @@ class FifoScheduler(
 
     override suspend fun next(): ScheduledUrl? {
         val next = state.maxPriority(session) ?: return null
+        state.remove(session, next.url)
         return ScheduledUrl(
             url = next.url,
             depth = next.depth,
