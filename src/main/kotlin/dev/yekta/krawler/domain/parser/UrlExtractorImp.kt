@@ -42,8 +42,8 @@ class UrlExtractorImp : UrlExtractor {
         val extractedUrls = (absUrls(html) + relUrlsAsAbs(url = url, html = html)).distinct()
         val filterPatterns: ((Regex) -> Boolean) -> Boolean = { predicate ->
             when (filter) {
-                is Blacklist -> filter.disallowPatterns.none(predicate)
-                is Whitelist -> filter.allowPatterns.any(predicate)
+                is Blacklist -> filter.disallowRegexPatterns.none(predicate)
+                is Whitelist -> filter.allowRegexPatterns.any(predicate)
             }
         }
         return extractedUrls.filter { absUrl ->
