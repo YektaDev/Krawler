@@ -30,4 +30,22 @@ class CrawlActivityStoreImp : CrawlActivityStore {
             .select { (CrawlActivities.sessionId eq session.value) and (CrawlActivities.type eq "Stop") }
             .singleOrNull() != null
     }
+
+    override suspend fun sessionDurationSeconds(session: CrawlingSessionID): Long = DBManager.transaction {
+        val times = CrawlActivities
+            .select { CrawlActivities.sessionId eq session.value }
+            .asSequence()
+            .map { it[CrawlActivities.type] to it[CrawlActivities.atEpochSeconds] }
+            .onEach {
+                require(it.first == "Start" || it.first == "Stop") { "Pause and Resume are not implemented yet!" }
+            }
+            .sortedBy { it.second }
+            .map { it.second }
+            .toList()
+            .also {
+                require(it.size <= 2) { "Too many records! This is unexpected!" }
+                require(it.size >= 2) { "sessionDurationSeconds() cannot be called on unfinished sessions!" }
+            }
+        times[1] - times[0]
+    }
 }

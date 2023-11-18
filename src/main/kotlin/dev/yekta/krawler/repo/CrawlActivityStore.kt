@@ -10,4 +10,6 @@ interface CrawlActivityStore {
     suspend fun addResume(session: CrawlingSessionID, epochSeconds: Long)
 
     suspend fun isCompleted(session: CrawlingSessionID): Boolean
+
+    suspend fun sessionDurationSeconds(session: CrawlingSessionID): Long
 }
