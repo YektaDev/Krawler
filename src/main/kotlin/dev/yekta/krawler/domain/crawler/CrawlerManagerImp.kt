@@ -7,10 +7,7 @@ import dev.yekta.krawler.repo.util.pause
 import dev.yekta.krawler.repo.util.resume
 import dev.yekta.krawler.repo.util.start
 import dev.yekta.krawler.repo.util.stop
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.launch
+import kotlinx.coroutines.*
 
 class CrawlerManagerImp(
     private val sessionId: CrawlingSessionID,
@@ -18,7 +15,7 @@ class CrawlerManagerImp(
     private val repo: Repo,
 ) : CrawlerManager {
     private val scope = CoroutineScope(Dispatchers.Default)
-    private val crawler: Crawler = CrawlerImp(sessionId, settings, repo, scope)
+    private val crawler: Crawler = CrawlerImp(sessionId, settings, repo, scope, finish = ::stop)
     private var crawlingJob: Job? = null
 
     override fun start() {

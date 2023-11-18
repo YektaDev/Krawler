@@ -27,6 +27,7 @@ class CrawlerImp(
     private val settings: KrawlerSettings,
     private val repo: Repo,
     private val scope: CoroutineScope = CoroutineScope(Dispatchers.Default),
+    private val finish: () -> Unit,
 ) : Crawler {
     private val pool: UrlPool = UrlPoolImp()
     private val scheduler: Scheduler = FifoScheduler(sessionId, repo.state)
