@@ -14,6 +14,8 @@ class KrawlerTui(
     private val getSessions: () -> List<CrawlingSessionID>,
     private val removeSession: (CrawlingSessionID) -> Unit,
     private val startSession: (CrawlingSessionID) -> KrawlerStartResult,
+    private val isSessionComplete: (CrawlingSessionID) -> Boolean,
+    private val viewSessionResult: (CrawlingSessionID) -> Unit,
 ) {
     private val nav = TuiStackNavigatorImp { page ->
         when (page) {
@@ -25,6 +27,10 @@ class KrawlerTui(
     }
 
     fun start() = nav.bindTui()
+
+    fun navigateToMainMenu() {
+        while (nav.hasBack) nav.pop()
+    }
 
     private fun mainMenu(): Menu = Menu(
         title = "Krawler",
@@ -55,8 +61,13 @@ class KrawlerTui(
         title = "Crawling Sessions",
         options = buildOptionList {
             val sessions = getSessions()
+            val finishedSessions = mutableListOf<CrawlingSessionID>()
             sessions.forEach { session ->
-                add("Resume Session: ${session.value}" to { handleStartResult(startSession(session)) })
+                if (isSessionComplete(session)) finishedSessions.add(session)
+                else add("Resume Session: ${session.value}" to { handleStartResult(startSession(session)) })
+            }
+            finishedSessions.forEach { session ->
+                add("View Session Result: ${session.value}" to { viewSessionResult(session) })
             }
             if (sessions.isNotEmpty()) {
                 add("Remove one or more sessions." to { nav.push(SESSION_DELETION) })

@@ -13,6 +13,7 @@ class CrawlerManagerImp(
     private val sessionId: CrawlingSessionID,
     private val settings: KrawlerSettings,
     private val repo: Repo,
+    private val finish: () -> Unit,
 ) : CrawlerManager {
     private val scope = CoroutineScope(Dispatchers.Default)
     private val crawler: Crawler = CrawlerImp(sessionId, settings, repo, scope, finish = ::stop)
@@ -31,6 +32,7 @@ class CrawlerManagerImp(
         }
         crawlingJob?.cancel()
         crawlingJob = null
+        finish()
     }
 
     override fun pause() {

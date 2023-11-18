@@ -22,6 +22,7 @@ class Krawler {
         )
     }
 
+    private val onCrawlingFinished: () -> Unit = { tui.navigateToMainMenu() }
     private val tui = KrawlerTui(
         getSessions = {
             runBlocking {
@@ -41,12 +42,21 @@ class Krawler {
                         sessionId = session,
                         settings = settings,
                         repo = repo,
+                        finish = onCrawlingFinished,
                     )
                     manager.start()
                     KrawlerStartResult.Success
                 },
             )
         },
+        isSessionComplete = { session ->
+            runBlocking {
+                repo.activity.isCompleted(session)
+            }
+        },
+        viewSessionResult = { session ->
+// TODO: TBD
+        }
     )
 
     fun start() = tui.start()
