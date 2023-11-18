@@ -13,7 +13,7 @@ import org.jetbrains.exposed.sql.addLogger
 import org.jetbrains.exposed.sql.transactions.experimental.newSuspendedTransaction
 
 object DBManager {
-    private const val DB_PATH = "KrawlerData.db"
+    private const val DB_PATH = "krawler_data.db"
     private val db = Database.connect("jdbc:sqlite:${DB_PATH}", "org.sqlite.JDBC")
     private val tables = arrayOf(
         CrawlActivities,
