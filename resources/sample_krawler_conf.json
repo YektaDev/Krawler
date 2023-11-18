@@ -1,0 +1,22 @@
+{
+    "seeds": [
+        "https://en.wikipedia.org/wiki/NASA"
+    ],
+    "filter": {
+        "#": "dev.yekta.krawler.model.CrawlingFilter.Whitelist",
+        "allowPatterns": [
+            "https://en\\.wikipedia\\.org/wiki/.*"
+        ]
+    },
+    "depth": 8,
+    "maxPages": 100,
+    "maxPageSizeKb": null,
+    "concurrentConnections": 16,
+    "verbose": true,
+    "shouldFollowRedirects": true,
+    "userAgent": "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)",
+    "connectTimeoutMs": 6000,
+    "readTimeoutMs": 6000,
+    "retriesOnServerError": 0,
+    "customHeaders": null
+}
