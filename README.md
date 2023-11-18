@@ -96,6 +96,14 @@ configuration containing all settings:
 + **`retriesOnServerError`**: Number of retries on server errors (`5xx`).
 + **`customHeaders`**: Additional custom headers for HTTP requests.
 
+## Good Next Steps
+
+Things that would benefit Krawler the most:
+
++ Implementing Pause/Resume
++ Config: `respectRobotsTxt: Boolean`
++ Config: `consecutiveErrorsToPause: Int?`
+
 ## Disclaimer
 
 Krawler was conceived and brought to life over a weekend, starting as a pet project. It was initially planned to be made
