@@ -1,6 +1,7 @@
 package dev.yekta.krawler.repo
 
 import dev.yekta.krawler.model.CrawlingSessionID
+import dev.yekta.krawler.model.SessionStats
 
 interface Repo {
     val state: CrawlingStateStore
@@ -10,4 +11,5 @@ interface Repo {
 
     suspend fun getSessions(): List<CrawlingSessionID>
     suspend fun clearSessionData(session: CrawlingSessionID)
+    suspend fun getSessionStats(session: CrawlingSessionID): SessionStats
 }
