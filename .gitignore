@@ -1,3 +1,7 @@
+krawler_data.db
+krawler_conf.json
+
+
 .gradle
 build/
 !gradle/wrapper/gradle-wrapper.jar
