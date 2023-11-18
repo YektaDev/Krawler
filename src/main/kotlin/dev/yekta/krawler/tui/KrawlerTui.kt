@@ -1,13 +1,13 @@
 package dev.yekta.krawler.tui
 
-import dev.yekta.krawler.console.Ask
+import dev.yekta.krawler.console.*
 import dev.yekta.krawler.console.Ask.Option
-import dev.yekta.krawler.console.error
-import dev.yekta.krawler.console.info
 import dev.yekta.krawler.model.CrawlingSessionID
 import dev.yekta.krawler.model.Page.*
+import dev.yekta.krawler.model.SessionStats
 import dev.yekta.krawler.repo.orm.util.SESSION_ID_MAX_LEN
 import dev.yekta.krawler.tui.model.Menu
+import java.util.*
 import kotlin.system.exitProcess
 
 class KrawlerTui(
@@ -15,7 +15,7 @@ class KrawlerTui(
     private val removeSession: (CrawlingSessionID) -> Unit,
     private val startSession: (CrawlingSessionID) -> KrawlerStartResult,
     private val isSessionComplete: (CrawlingSessionID) -> Boolean,
-    private val viewSessionResult: (CrawlingSessionID) -> Unit,
+    private val getSessionStats: (CrawlingSessionID) -> SessionStats,
 ) {
     private val nav = TuiStackNavigatorImp { page ->
         when (page) {
@@ -30,6 +30,34 @@ class KrawlerTui(
 
     fun navigateToMainMenu() {
         while (nav.hasBack) nav.pop()
+    }
+
+    fun displayStats(session: CrawlingSessionID) {
+        val stats = getSessionStats(session)
+        fun StringBuilder.stat(block: SessionStats.() -> Pair<String, String>) {
+            val (key, value) = with(stats) { block() }
+            append("".purpleBoldBright())
+            append(key.padEnd(20))
+            append(": ".whiteBold())
+            append(value.yellowUnderlined().yellowBoldBright().reset())
+            append('\n')
+        }
+
+        val statsString = buildString {
+            stat { "ID" to id.value }
+            stat {
+                val mins = totalSeconds / 60
+                val minsSec = totalSeconds % 60
+                val minsString = if (minsSec > 0) "$mins Minutes and $minsSec Seconds" else "$mins Minutes"
+                val duration = "$totalSeconds Seconds".let { if (mins > 0) "$it ($minsString)" else it }
+                "Total Duration" to duration
+            }
+            stat { "Total Crawled Pages" to totalCrawledPages.toString() }
+            stat { "Average HTML Length" to "%.2f".format(averageHtmlLength, Locale.ENGLISH) }
+            stat { "URLs in Final Queue" to urlsInQueue.toString() }
+        }
+        info("Session Stats:\n")
+        info(statsString)
     }
 
     private fun mainMenu(): Menu = Menu(
@@ -64,10 +92,14 @@ class KrawlerTui(
             val finishedSessions = mutableListOf<CrawlingSessionID>()
             sessions.forEach { session ->
                 if (isSessionComplete(session)) finishedSessions.add(session)
-                else add("Resume Session: ${session.value}" to { handleStartResult(startSession(session)) })
+                else add("Resume Session: ${session.value}" to {
+                    error("Sorry, resuming is not fully implemented yet.")
+                    // handleStartResult(startSession(session))
+                }
+                )
             }
             finishedSessions.forEach { session ->
-                add("View Session Result: ${session.value}" to { viewSessionResult(session) })
+                add("View Session Result: ${session.value}" to { displayStats(session) })
             }
             if (sessions.isNotEmpty()) {
                 add("Remove one or more sessions." to { nav.push(SESSION_DELETION) })
