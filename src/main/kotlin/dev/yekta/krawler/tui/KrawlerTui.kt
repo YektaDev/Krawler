@@ -67,7 +67,7 @@ class KrawlerTui(
     )
 
     private fun createNewSession(): CrawlingSessionID =
-        Ask.string("Enter a unique session name (maximum characters: $SESSION_ID_MAX_LEN): ").let { id ->
+        Ask.string("Enter a unique session name (maximum characters: $SESSION_ID_MAX_LEN):").let { id ->
             when {
                 id.length > SESSION_ID_MAX_LEN -> {
                     error(
