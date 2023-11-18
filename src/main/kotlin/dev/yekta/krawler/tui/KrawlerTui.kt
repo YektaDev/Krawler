@@ -65,6 +65,13 @@ class KrawlerTui(
         options = Option.listOf(
             "Let's Krawl!" to { nav.push(SESSION_SELECTION) },
             "Settings" to { nav.push(SETTINGS) },
+            "About" to {
+                println(
+                    "<[ Krawler ".whiteBoldBright() + "0.1.0".whiteBold() + " ]>\nBy ".whiteBoldBright() +
+                            "Ali Khaleqi Yekta".purpleBoldBright() + " | ".whiteBold() +
+                            "Me@yekta.dev".yellowUnderlined().reset()
+                )
+            },
             "Exit" to { exitProcess(0) },
         )
     )
