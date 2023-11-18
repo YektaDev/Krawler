@@ -2,25 +2,17 @@ package dev.yekta.krawler
 
 import dev.yekta.krawler.domain.crawler.CrawlerManager
 import dev.yekta.krawler.domain.crawler.CrawlerManagerImp
-import dev.yekta.krawler.log.Log
-import dev.yekta.krawler.model.CrawlingFilter
-import dev.yekta.krawler.model.CrawlingSessionID
-import dev.yekta.krawler.model.KrawlerSettings
 import dev.yekta.krawler.repo.RepoImp
 import dev.yekta.krawler.repo.imp.CrawlActivityStoreImp
 import dev.yekta.krawler.repo.imp.CrawlErrorStoreImp
 import dev.yekta.krawler.repo.imp.CrawlingStateStoreImp
 import dev.yekta.krawler.repo.imp.WebpageStoreImp
+import dev.yekta.krawler.settings.SettingsFile
 import dev.yekta.krawler.tui.KrawlerStartResult
 import dev.yekta.krawler.tui.KrawlerTui
 import kotlinx.coroutines.runBlocking
 
 class Krawler {
-    private val settings = KrawlerSettings(
-        seeds = listOf(),
-        filter = CrawlingFilter.Whitelist(listOf()),
-    ).also { Log.verbose = it.verbose }
-
     private val repo by lazy {
         RepoImp(
             state = CrawlingStateStoreImp(),
@@ -29,12 +21,6 @@ class Krawler {
             error = CrawlErrorStoreImp(),
         )
     }
-
-    private val manager: CrawlerManager = CrawlerManagerImp(
-        sessionId = CrawlingSessionID(""),
-        settings = settings,
-        repo = repo,
-    )
 
     private val tui = KrawlerTui(
         getSessions = {
@@ -48,8 +34,18 @@ class Krawler {
             }
         },
         startSession = { session ->
-            manager.start()
-            KrawlerStartResult.Success
+            runCatching(SettingsFile::read).fold(
+                onFailure = { KrawlerStartResult.Failure(it.message ?: it.stackTraceToString()) },
+                onSuccess = { settings ->
+                    val manager: CrawlerManager = CrawlerManagerImp(
+                        sessionId = session,
+                        settings = settings,
+                        repo = repo,
+                    )
+                    manager.start()
+                    KrawlerStartResult.Success
+                },
+            )
         },
     )
 
