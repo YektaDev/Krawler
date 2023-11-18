@@ -1,4 +1,4 @@
-# Krawler: Asynchronous Kotlin Crawler
+# Krawler: Asynchronous Kotlin Crawler 🚀
 
 ## Overview
 
