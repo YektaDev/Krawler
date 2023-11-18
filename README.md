@@ -101,6 +101,8 @@ configuration containing all settings:
 Things that would benefit Krawler the most:
 
 + Implementing Pause/Resume
+    + _Hint:_ The `UrlPool` is the only state that isn't currently being persisted but needs to be, in order to be able
+      to restore paused sessions.
 + Config: `respectRobotsTxt: Boolean`
 + Config: `consecutiveErrorsToPause: Int?`
 
