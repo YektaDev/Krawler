@@ -19,10 +19,11 @@ import dev.yekta.krawler.model.CrawlingSessionID
 import dev.yekta.krawler.model.KrawlerSettings
 import dev.yekta.krawler.repo.Repo
 import dev.yekta.krawler.repo.util.add
+import dev.yekta.krawler.repo.util.currentEpochSeconds
 import kotlinx.coroutines.*
-import kotlinx.datetime.Clock
 import okio.utf8Size
 import kotlin.math.min
+import kotlin.math.roundToLong
 
 class CrawlerImp(
     private val sessionId: CrawlingSessionID,
@@ -53,45 +54,55 @@ class CrawlerImp(
         run()
     }
 
+    private suspend fun reachedMaxPages() = settings.maxPages.let { it != null && repo.webpage.total(sessionId) > it }
     private suspend fun run() {
-        var i = 0
-        val hasReachedPageLimit = {
-            when (val max = settings.maxPages) {
-                null -> false
-                else -> ++i >= max
-            }
-        }
-
         var url = scheduler.next()
         while (url != null) {
             val u = url
             fetcher.fetch(u.url) { result -> handleFetchResult(u.depth, u.url, result) }
 
-            if (hasReachedPageLimit()) break
+            if (reachedMaxPages()) break
             url = scheduler.next()
-            val start = Clock.System.now().epochSeconds
-            while (url == null && Clock.System.now().epochSeconds - start < settings.connectTimeoutMs + settings.readTimeoutMs) {
-                info("Waiting for active crawling processes to provide new URLs...")
-                delay(1000)
-                url = scheduler.next()
-            }
+            waitForUrl(isUrlEmpty = { url == null }, trySetUrl = { url = scheduler.next() })
         }
 
-        informEndOfCrawling(reachedMaxPageLimit = url != null, totalCrawled = i)
-        finish()
+        scope.launch(NonCancellable) {
+            finish()
+
+            // Ideally we should cancel the remaining crawling scopes, but I don't have enough time for
+            // a task of this priority at the time of writing!
+            info("The process is over. Waiting for possible active calls to finish...")
+            delay(safeTimeoutMs())
+
+            informEndOfCrawling(reachedMaxPageLimit = url != null)
+        }
+        scope.coroutineContext.cancelChildren()
     }
 
-    private fun informEndOfCrawling(reachedMaxPageLimit: Boolean, totalCrawled: Int) {
+    private fun safeTimeoutMs(): Long = ((settings.connectTimeoutMs + settings.readTimeoutMs) * 1.1f).roundToLong()
+
+    private suspend fun waitForUrl(isUrlEmpty: () -> Boolean, trySetUrl: suspend () -> Unit) {
+        val startSec = currentEpochSeconds()
+        val timeoutSec = safeTimeoutMs() / 1000
+        while (isUrlEmpty() && currentEpochSeconds() - startSec <= timeoutSec) {
+            info("Waiting for active crawling processes to provide new URLs...")
+            delay(1000L)
+            trySetUrl()
+        }
+    }
+
+    private suspend fun informEndOfCrawling(reachedMaxPageLimit: Boolean) {
         when (reachedMaxPageLimit) {
             true -> info("Crawling reached its max page count limit.")
             false -> info("All discovered URLs are processed. ")
         }
         info("The crawling process is over.")
-        info("Total Crawled URLs: $totalCrawled")
+        info("Total Crawled URLs: ${repo.webpage.total(sessionId)}")
     }
 
     private suspend fun handleFetchResult(depth: Int, url: String, result: FetchResult) {
         val minDepth = updateAndGetMinDepth(url, depth)
+        if (reachedMaxPages()) return
         when (result) {
             is Html -> {
                 if (settings.maxPageSizeBytes != null && result.html.utf8Size() > settings.maxPageSizeBytes) {
@@ -128,6 +139,7 @@ class CrawlerImp(
 
     private suspend fun scheduleNewUrls(depth: Int, urls: List<String>) {
         for (url in urls) {
+            if (reachedMaxPages()) return
             val minDepth = updateAndGetMinDepth(url, depth)
             if (pool[url] != null) continue
 
