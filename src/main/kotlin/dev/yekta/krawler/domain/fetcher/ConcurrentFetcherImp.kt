@@ -56,9 +56,9 @@ class ConcurrentFetcherImp(
     override suspend fun fetch(url: String, onRead: suspend (FetchResult) -> Unit) =
         launchOrSuspendRead(url, onRead)
 
-    private suspend inline fun launchOrSuspendRead(url: String, crossinline onRead: suspend (FetchResult) -> Unit) =
+    private suspend inline fun launchOrSuspendRead(url: String, crossinline onRead: suspend (FetchResult) -> Unit) {
         when {
-            activeConnections.value >= maxConnections -> launchRequest { onRead(read(url)) }
+            activeConnections.value >= maxConnections -> launchRequest { onRead(read(url)) }.join()
             else -> {
                 activeConnections.value++
                 launchRequest {
@@ -68,12 +68,12 @@ class ConcurrentFetcherImp(
                 }
             }
         }
+    }
 
-    private suspend inline fun launchRequest(crossinline block: suspend CoroutineScope.() -> Unit) {
+    private suspend inline fun launchRequest(crossinline block: suspend CoroutineScope.() -> Unit) =
         client.launch(SupervisorJob()) {
             block()
         }
-    }
 
     private suspend fun read(url: String): FetchResult = try {
         Log.v("[$url] Get")
